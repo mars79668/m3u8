@@ -6,8 +6,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/grafov/m3u8"
-	"github.com/grafov/m3u8/example/template"
+	"github.com/mars79668/m3u8"
+	"github.com/mars79668/m3u8/example/template"
 )
 
 func main() {
