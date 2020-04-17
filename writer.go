@@ -349,6 +349,14 @@ func (p *MediaPlaylist) Remove() (err error) {
 	return nil
 }
 
+func (p *MediaPlaylist) AppendEx(uri string, duration float64, title string) error {
+	seg := new(MediaSegment)
+	seg.URI = uri
+	seg.Duration = duration
+	seg.Title = title
+	return p.AppendSegmentEx(seg)
+}
+
 // Append general chunk to the tail of chunk slice for a media playlist.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) Append(uri string, duration float64, title string) error {
@@ -357,6 +365,29 @@ func (p *MediaPlaylist) Append(uri string, duration float64, title string) error
 	seg.Duration = duration
 	seg.Title = title
 	return p.AppendSegment(seg)
+}
+
+func (p *MediaPlaylist) AppendSegmentEx(seg *MediaSegment) error {
+	if p.head == p.tail && p.count > 0 {
+		p.head = (p.head + 1) % p.capacity
+		p.count--
+		if !p.Closed {
+			p.SeqNo++
+		}
+		p.buf.Reset()
+	}
+	seg.SeqId = p.SeqNo
+	if p.count > 0 {
+		seg.SeqId = p.Segments[(p.capacity+p.tail-1)%p.capacity].SeqId + 1
+	}
+	p.Segments[p.tail] = seg
+	p.tail = (p.tail + 1) % p.capacity
+	p.count++
+	if p.TargetDuration < seg.Duration {
+		p.TargetDuration = math.Ceil(seg.Duration)
+	}
+	p.buf.Reset()
+	return nil
 }
 
 // AppendSegment appends a MediaSegment to the tail of chunk slice for a media playlist.
@@ -712,6 +743,23 @@ func (p *MediaPlaylist) Encode() *bytes.Buffer {
 func (p *MediaPlaylist) String() string {
 	return p.Encode().String()
 }
+
+// SegmentsList return order list
+func (p *MediaPlaylist) SegmentsList() []*MediaSegment {
+	head := p.head
+	count := p.count
+	var resList []*MediaSegment
+	for ; count > 0; count-- {
+		seg := p.Segments[head]
+		head = (head + 1) % p.capacity
+		if seg == nil { // protection from badly filled chunklists
+			continue
+		}
+		resList = append(resList,seg)
+	}
+	return resList
+}
+
 
 // TargetDuration will be int on Encode
 func (p *MediaPlaylist) DurationAsInt(yes bool) {
