@@ -756,6 +756,15 @@ func (p *MediaPlaylist) String() string {
 	return p.Encode().String()
 }
 
+// Count tells us the number of items that are currently in the media playlist
+func (p *MediaPlaylist) Capacity() uint {
+	return p.capacity
+}
+
+func (p *MediaPlaylist) HasCache() bool {
+	return p.count > p.winsize
+}
+
 // SegmentsList return order list
 func (p *MediaPlaylist) SegmentsList() []*MediaSegment {
 	head := p.head
