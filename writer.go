@@ -349,6 +349,18 @@ func (p *MediaPlaylist) Remove() (err error) {
 	return nil
 }
 
+func (p *MediaPlaylist) RemoveCache() (err error) {
+	if p.count >= p.winsize {
+		p.head = (p.head + 1) % p.capacity
+		p.count--
+		if !p.Closed {
+			p.SeqNo++
+		}
+		p.buf.Reset()
+	}
+	return nil
+}
+
 func (p *MediaPlaylist) AppendEx(uri string, duration float64, title string) error {
 	seg := new(MediaSegment)
 	seg.URI = uri
@@ -755,11 +767,10 @@ func (p *MediaPlaylist) SegmentsList() []*MediaSegment {
 		if seg == nil { // protection from badly filled chunklists
 			continue
 		}
-		resList = append(resList,seg)
+		resList = append(resList, seg)
 	}
 	return resList
 }
-
 
 // TargetDuration will be int on Encode
 func (p *MediaPlaylist) DurationAsInt(yes bool) {
