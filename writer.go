@@ -395,7 +395,11 @@ func (p *MediaPlaylist) AppendSegmentEx(seg *MediaSegment) error {
 	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
-	if p.TargetDuration < seg.Duration {
+	if p.TargetDuration < seg.Duration && seg.Duration < p.TargetDuration*2 {
+		p.TargetDuration = math.Ceil(seg.Duration)
+	}
+
+	if p.TargetDuration > seg.Duration*2 {
 		p.TargetDuration = math.Ceil(seg.Duration)
 	}
 	p.buf.Reset()
@@ -415,7 +419,11 @@ func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
 	p.Segments[p.tail] = seg
 	p.tail = (p.tail + 1) % p.capacity
 	p.count++
-	if p.TargetDuration < seg.Duration {
+	if p.TargetDuration < seg.Duration && seg.Duration < p.TargetDuration*2 {
+		p.TargetDuration = math.Ceil(seg.Duration)
+	}
+
+	if p.TargetDuration > seg.Duration*2 {
 		p.TargetDuration = math.Ceil(seg.Duration)
 	}
 	p.buf.Reset()
