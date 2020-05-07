@@ -1123,3 +1123,28 @@ func BenchmarkEncodeMediaPlaylist(b *testing.B) {
 		_ = p.Encode() // disregard output
 	}
 }
+
+func TestFixTargetDuration(t *testing.T) {
+	p, _ := NewMediaPlaylist(5, 5)
+	p.AppendSegmentEx(&MediaSegment{URI: "1.ts", Duration: 5.01})
+	p.AppendSegmentEx(&MediaSegment{URI: "2.ts", Duration: 5.04})
+	p.AppendSegmentEx(&MediaSegment{URI: "3.ts", Duration: 4.12})
+	p.AppendSegmentEx(&MediaSegment{URI: "4.ts", Duration: 6.04})
+	p.AppendSegmentEx(&MediaSegment{URI: "5.ts", Duration: 5.12})
+	p.FixTargetDuration()
+	t.Logf(p.Encode().String())
+	p.AppendSegmentEx(&MediaSegment{URI: "6.ts", Duration: 9.99})
+	p.FixTargetDuration()
+	t.Logf(p.Encode().String())
+	p.AppendSegmentEx(&MediaSegment{URI: "7.ts", Duration: 9999.99})
+	p.FixTargetDuration()
+	t.Logf(p.Encode().String())
+	p.AppendSegmentEx(&MediaSegment{URI: "11.ts", Duration: 5.01})
+	p.AppendSegmentEx(&MediaSegment{URI: "12.ts", Duration: 5.04})
+	p.AppendSegmentEx(&MediaSegment{URI: "13.ts", Duration: 7.12})
+	p.AppendSegmentEx(&MediaSegment{URI: "14.ts", Duration: 5.04})
+	p.AppendSegmentEx(&MediaSegment{URI: "15.ts", Duration: 5.12})
+	p.FixTargetDuration()
+	t.Logf(p.Encode().String())
+
+}

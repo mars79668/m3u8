@@ -411,6 +411,32 @@ func (p *MediaPlaylist) AppendSegmentEx(seg *MediaSegment) error {
 	return nil
 }
 
+func (p *MediaPlaylist) FixTargetDuration() {
+	head := p.head
+	count := p.count
+
+	targetMaxDuration := 0.0
+	for ; count > 0; count-- {
+		seg := p.Segments[head]
+		head = (head + 1) % p.capacity
+		if seg == nil { // protection from badly filled chunklists
+			continue
+		}
+		targetDuration := math.Ceil(seg.Duration)
+		if targetDuration > p.TargetDuration*2 {
+			continue
+		}
+
+		if targetDuration > targetMaxDuration {
+			targetMaxDuration = targetDuration
+		}
+	}
+
+	if targetMaxDuration > 0 {
+		p.TargetDuration = targetMaxDuration
+	}
+}
+
 // AppendSegment appends a MediaSegment to the tail of chunk slice for a media playlist.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) AppendSegment(seg *MediaSegment) error {
