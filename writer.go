@@ -416,6 +416,17 @@ func (p *MediaPlaylist) FixTargetDuration() {
 	count := p.count
 
 	targetMaxDuration := 0.0
+	targetAvgDuration := 0.0
+	for ; count > 0; count-- {
+		seg := p.Segments[head]
+		head = (head + 1) % p.capacity
+		if seg == nil { // protection from badly filled chunklists
+			continue
+		}
+		targetAvgDuration += math.Ceil(seg.Duration)
+	}
+	targetAvgDuration = targetAvgDuration / float64(p.count)
+
 	for ; count > 0; count-- {
 		seg := p.Segments[head]
 		head = (head + 1) % p.capacity
@@ -423,7 +434,8 @@ func (p *MediaPlaylist) FixTargetDuration() {
 			continue
 		}
 		targetDuration := math.Ceil(seg.Duration)
-		if targetDuration > p.TargetDuration*2 {
+		if targetDuration > p.TargetDuration*2 &&
+			targetDuration > targetAvgDuration*2 {
 			continue
 		}
 
