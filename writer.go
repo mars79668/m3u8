@@ -333,6 +333,20 @@ func (p *MediaPlaylist) last() uint {
 	}
 	return p.tail - 1
 }
+// Remove last segment from the head of chunk slice form a media playlist. Useful for sliding playlists.
+// This operation does reset playlist cache.
+func (p *MediaPlaylist) RemoveLast() (err error) {
+	if p.count == 0 {
+		return errors.New("playlist is empty")
+	}
+	p.tail = p.last()
+	p.count--
+	if !p.Closed {
+		p.SeqNo--
+	}
+	p.buf.Reset()
+	return nil
+}
 
 // Remove current segment from the head of chunk slice form a media playlist. Useful for sliding playlists.
 // This operation does reset playlist cache.
