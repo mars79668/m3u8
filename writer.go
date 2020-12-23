@@ -333,6 +333,7 @@ func (p *MediaPlaylist) last() uint {
 	}
 	return p.tail - 1
 }
+
 // Remove last segment from the head of chunk slice form a media playlist. Useful for sliding playlists.
 // This operation does reset playlist cache.
 func (p *MediaPlaylist) RemoveLast() (err error) {
@@ -414,7 +415,9 @@ func (p *MediaPlaylist) AppendSegmentEx(seg *MediaSegment) error {
 		p.TargetDuration = math.Ceil(seg.Duration)
 	}
 
-	if p.TargetDuration < seg.Duration && seg.Duration < p.TargetDuration*2 {
+	if p.TargetDuration < seg.Duration && seg.Duration < p.TargetDuration*3 {
+		p.TargetDuration = math.Ceil(seg.Duration)
+	} else if p.TargetDuration < seg.Duration && seg.Duration < p.AvgTargetDuration()*3 {
 		p.TargetDuration = math.Ceil(seg.Duration)
 	}
 
@@ -425,11 +428,9 @@ func (p *MediaPlaylist) AppendSegmentEx(seg *MediaSegment) error {
 	return nil
 }
 
-func (p *MediaPlaylist) FixTargetDuration() {
+func (p *MediaPlaylist) AvgTargetDuration() float64 {
 	head := p.head
 	count := p.count
-
-	targetMaxDuration := 0.0
 	targetAvgDuration := 0.0
 	for ; count > 0; count-- {
 		seg := p.Segments[head]
@@ -440,6 +441,15 @@ func (p *MediaPlaylist) FixTargetDuration() {
 		targetAvgDuration += math.Ceil(seg.Duration)
 	}
 	targetAvgDuration = targetAvgDuration / float64(p.count)
+	return targetAvgDuration
+}
+
+func (p *MediaPlaylist) FixTargetDuration() {
+	head := p.head
+	count := p.count
+
+	targetMaxDuration := 0.0
+	targetAvgDuration := p.AvgTargetDuration()
 
 	for ; count > 0; count-- {
 		seg := p.Segments[head]
